@@ -1,9 +1,10 @@
 {
   "name": "@repo/crypto",
   "version": "1.0.0",
-  "private": true,
-  "main": "dist/index.js",       
-  "types": "dist/index.d.ts",    
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": false,
+  "files": ["dist"], 
   "scripts": {
     "build": "tsc"               
   },

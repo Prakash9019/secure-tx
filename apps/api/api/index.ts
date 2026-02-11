@@ -12,11 +12,11 @@ const app = Fastify({
 
 // Enable CORS for frontend + preflight
 app.register(cors, {
-  origin: true,
+  origin: true, // In production, replace 'true' with your actual frontend domain
   methods: ["GET", "POST", "OPTIONS"]
 });
 
-// In-memory store (OK for challenge)
+// In-memory store (Note: Data will be lost when the Vercel function sleeps)
 const db = new Map<string, any>();
 
 // Encrypt & store
@@ -59,6 +59,13 @@ app.post("/tx/:id/decrypt", async (req) => {
 // ================================
 export default async function handler(req: any, res: any) {
   await app.ready();
+
+  // FIX: Strip the '/api' prefix so Fastify routes match correctly
+  // Vercel sends: /api/tx/encrypt -> Fastify expects: /tx/encrypt
+  if (req.url && req.url.startsWith("/api")) {
+    req.url = req.url.replace("/api", "");
+  }
+
   app.server.emit("request", req, res);
 }
 

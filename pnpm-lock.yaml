@@ -24,7 +24,7 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       '@repo/crypto':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/crypto
       cors:
         specifier: ^2.8.6

@@ -3,24 +3,46 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { v4 as uuid } from "uuid";
 
-// Use shared crypto package (production safe)
 import { encryptEnvelope, decryptEnvelope } from "@repo/crypto";
 
-const app = Fastify({
-  logger: true
-});
+const app = Fastify({ logger: true });
 
-// Enable CORS for frontend + preflight
 app.register(cors, {
-  origin: true, // In production, replace 'true' with your actual frontend domain
+  origin: true,
   methods: ["GET", "POST", "OPTIONS"]
 });
 
-// In-memory store (Note: Data will be lost when the Vercel function sleeps)
+// ================================
+// 🔍 GLOBAL REQUEST LOGGER
+// ================================
+app.addHook("onRequest", async (req) => {
+  console.log("➡️ METHOD:", req.method);
+  console.log("➡️ URL:", req.url);
+});
+
+// ================================
+// 🧪 HEALTH CHECK ROUTES
+// ================================
+app.get("/", async () => {
+  return { status: "API running" };
+});
+
+app.get("/ping", async () => {
+  return { pong: true };
+});
+
+// ================================
+// DATA STORE
+// ================================
 const db = new Map<string, any>();
 
-// Encrypt & store
+// ================================
+// ROUTES
+// ================================
+
 app.post("/tx/encrypt", async (req) => {
+  console.log("🔥 HIT encrypt route");
+
   const { partyId, payload } = req.body as any;
 
   if (!partyId || !payload) {
@@ -40,38 +62,39 @@ app.post("/tx/encrypt", async (req) => {
   return record;
 });
 
-// Fetch encrypted only
 app.get("/tx/:id", async (req) => {
+  console.log("📦 HIT fetch route");
   return db.get((req.params as any).id) ?? { error: "Not found" };
 });
 
-// Decrypt
 app.post("/tx/:id/decrypt", async (req) => {
+  console.log("🔓 HIT decrypt route");
+
   const rec = db.get((req.params as any).id);
   if (!rec) return { error: "Not found" };
 
   return decryptEnvelope(rec);
 });
 
-
 // ================================
-// Vercel serverless handler
+// VERCEL HANDLER
 // ================================
 export default async function handler(req: any, res: any) {
   await app.ready();
 
-  // FIX: Strip the '/api' prefix so Fastify routes match correctly
-  // Vercel sends: /api/tx/encrypt -> Fastify expects: /tx/encrypt
-  if (req.url && req.url.startsWith("/api")) {
+  console.log("🌐 RAW URL FROM VERCEL:", req.url);
+
+  if (req.url?.startsWith("/api")) {
     req.url = req.url.replace("/api", "");
   }
+
+  console.log("🔁 AFTER STRIP:", req.url);
 
   app.server.emit("request", req, res);
 }
 
-
 // ================================
-// Local dev server
+// LOCAL DEV
 // ================================
 if (process.env.NODE_ENV !== "production") {
   app.listen({ port: 3002 }).then(() => {

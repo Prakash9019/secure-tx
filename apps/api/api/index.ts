@@ -2,7 +2,8 @@ import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { v4 as uuid } from "uuid";
-import { encryptEnvelope, decryptEnvelope } from "@repo/crypto";
+// import { encryptEnvelope, decryptEnvelope } from "@repo/crypto";
+import { encryptEnvelope, decryptEnvelope } from "../../../packages/crypto/dist/index.js";
 
 const app = Fastify();
 

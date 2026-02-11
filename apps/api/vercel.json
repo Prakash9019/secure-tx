@@ -1,7 +1,10 @@
 {
   "functions": {
     "api/index.ts": {
-      "includeFiles": "../../packages/crypto/dist/**"
+      "runtime": "nodejs20.x",
+      "includeFiles": [
+        "../../packages/crypto/dist/**"
+      ]
     }
   }
 }

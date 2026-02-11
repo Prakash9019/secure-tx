@@ -1,15 +1,13 @@
+import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { v4 as uuid } from "uuid";
 import { encryptEnvelope, decryptEnvelope } from "@repo/crypto";
-import "dotenv/config";
 
-async function start() {
-  const app = Fastify({ logger: true });
+export default async function handler(req: any, res: any) {
+  const app = Fastify();
 
-  await app.register(cors, {
-    origin: "*"
-  });
+  await app.register(cors, { origin: "*" });
 
   const db = new Map<string, any>();
 
@@ -39,7 +37,6 @@ async function start() {
     return decryptEnvelope(rec);
   });
 
-  await app.listen({ port: 3001 });
+  await app.ready();
+  app.server.emit("request", req, res);
 }
-
-start();
